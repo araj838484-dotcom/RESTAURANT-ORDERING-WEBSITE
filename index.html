@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#e65327">
+  <meta name="description" content="Bihar Bites - Fresh and tasty food delivered to your doorstep.">
+  <title>Bihar Bites | Online Food Ordering</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #fffaf5;
+      color: #242424;
+    }
+
+    header {
+      background: white;
+      padding: 18px 6%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 12px #00000010;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .logo {
+      font-size: 25px;
+      font-weight: bold;
+      color: #e65327;
+    }
+
+    .cart {
+      background: #e65327;
+      color: white;
+      border: 0;
+      padding: 12px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .hero {
+      padding: 55px 6%;
+      background: #fff0df;
+    }
+
+    .hero h1 {
+      font-size: clamp(30px, 5vw, 52px);
+      margin: 0 0 12px;
+    }
+
+    .hero p {
+      color: #666;
+      font-size: 17px;
+    }
+
+    .search {
+      width: 100%;
+      max-width: 500px;
+      padding: 14px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      margin-top: 12px;
+      font-size: 16px;
+    }
+
+    main {
+      padding: 30px 6%;
+    }
+
+    .products {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 3px 15px #0000000c;
+      padding-bottom: 16px;
+    }
+
+    .food-image {
+      height: 150px;
+      display: grid;
+      place-items: center;
+      background: #ffe7d3;
+      font-size: 65px;
+    }
+
+    .card h3,
+    .card p,
+    .card .price {
+      margin: 12px 16px;
+    }
+
+    .price {
+      font-weight: bold;
+      color: #d94820;
+    }
+
+    .add {
+      margin: 0 16px;
+      width: calc(100% - 32px);
+      padding: 11px;
+      border: 1px solid #e65327;
+      border-radius: 8px;
+      background: white;
+      color: #e65327;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .add:hover {
+      background: #fff0e9;
+    }
+
+    .notice {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    footer {
+      text-align: center;
+      padding: 25px;
+      color: #777;
+    }
+
+    @media (max-width: 480px) {
+      .hero {
+        padding: 38px 5%;
+      }
+
+      main {
+        padding: 25px 5%;
+      }
+
+      .products {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .food-image {
+        height: 110px;
+        font-size: 48px;
+      }
+
+      .card h3 {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div class="logo">🍽️ Bihar Bites</div>
+    <button class="cart" onclick="showCart()">
+      🛒 Cart (<span id="count">0</span>)
+    </button>
+  </header>
+
+  <section class="hero">
+    <h1>Welcome to Bihar Bites!</h1>
+    <p>Good food, great taste, delivered to your doorstep.</p>
+    <input
+      class="search"
+      id="search"
+      placeholder="Search food..."
+      aria-label="Search food"
+      oninput="renderProducts()"
+    >
+  </section>
+
+  <main>
+    <h2>Popular Dishes</h2>
+    <p class="notice">Explore our sample menu.</p>
+
+    <div class="products" id="products"></div>
+
+    <section id="cartArea" hidden>
+      <h2>Your Cart</h2>
+      <div id="cartItems"></div>
+      <h3 id="total"></h3>
+      <p class="notice">
+        Online checkout and order notifications will be added next.
+      </p>
+    </section>
+  </main>
+
+  <footer>
+    © <span id="year"></span> Bihar Bites. Made with ❤️
+  </footer>
+
+  <script>
+    const menu = [
+      { id: 1, name: "Veg Burger", price: 99, emoji: "🍔" },
+      { id: 2, name: "Cheese Pizza", price: 199, emoji: "🍕" },
+      { id: 3, name: "Masala Dosa", price: 89, emoji: "🥞" },
+      { id: 4, name: "Veg Biryani", price: 149, emoji: "🍛" },
+      { id: 5, name: "French Fries", price: 79, emoji: "🍟" },
+      { id: 6, name: "Cold Coffee", price: 69, emoji: "🥤" }
+    ];
+
+    const cart = {};
+
+    document.getElementById("year").textContent =
+      new Date().getFullYear();
+
+    function renderProducts() {
+      const query = document
+        .getElementById("search")
+        .value.toLowerCase();
+
+      const filtered = menu.filter(item =>
+        item.name.toLowerCase().includes(query)
+      );
+
+      document.getElementById("products").innerHTML =
+        filtered.length
+          ? filtered.map(item => `
+              <article class="card">
+                <div class="food-image">${item.emoji}</div>
+                <h3>${item.name}</h3>
+                <p class="price">₹${item.price}</p>
+                <button
+                  class="add"
+                  onclick="addToCart(${item.id})"
+                >
+                  Add to Cart
+                </button>
+              </article>
+            `).join("")
+          : "<p>No food items found.</p>";
+    }
+
+    function addToCart(id) {
+      cart[id] = (cart[id] || 0) + 1;
+
+      document.getElementById("count").textContent =
+        Object.values(cart).reduce((sum, qty) => sum + qty, 0);
+    }
+
+    function showCart() {
+      const area = document.getElementById("cartArea");
+      area.hidden = false;
+
+      const entries = Object.entries(cart);
+
+      document.getElementById("cartItems").innerHTML =
+        entries.length
+          ? entries.map(([id, qty]) => {
+              const item = menu.find(
+                product => product.id === Number(id)
+              );
+
+              return `
+                <div class="cart-item">
+                  <span>${item.name} × ${qty}</span>
+                  <strong>₹${item.price * qty}</strong>
+                </div>
+              `;
+            }).join("")
+          : "<p>Your cart is empty.</p>";
+
+      const total = entries.reduce((sum, [id, qty]) => {
+        const item = menu.find(
+          product => product.id === Number(id)
+        );
+        return sum + item.price * qty;
+      }, 0);
+
+      document.getElementById("total").textContent =
+        "Total: ₹" + total;
+
+      area.scrollIntoView({ behavior: "smooth" });
+    }
+
+    renderProducts();
+  </script>
+</body>
+</html>
